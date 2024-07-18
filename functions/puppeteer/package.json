@@ -1,0 +1,13 @@
+{
+    "name": "puppeteer",
+    "private": true,
+    "version": "0.1.0",
+    "description": "AWS Lambda Function that loads Chromium. Refer to https://github.com/Sparticuz/chromium#install for compatible versions.",
+    "main": "app.mjs",
+    "devDependencies": {
+      "@sparticuz/chromium": "^123.0.1"
+    },
+    "dependencies": {
+      "puppeteer-core": "^22.12.1"
+    }
+  }

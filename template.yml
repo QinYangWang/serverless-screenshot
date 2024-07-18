@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Resources:
+#######################################
+# AWS ApiGateway Resource
+#######################################
+  ApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      AlwaysDeploy: True
+      BinaryMediaTypes:
+        - '*/*'
+#######################################
+# AWS Lambda Layer Resource
+#######################################
+  FontsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      Description: Fonts for Chromium
+      ContentUri: layers/FontsLayer
+      CompatibleRuntimes:
+        - nodejs18.x
+      RetentionPolicy: Delete
+
+  ChromiumLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      Description: Chromium with Node.js integration for AWS Lambda
+      ContentUri: layers/ChromiumLayer
+      CompatibleRuntimes:
+        - nodejs18.x
+      RetentionPolicy: Delete
+    Metadata:
+      BuildMethod: nodejs18.x
+      BuildArchitecture: x86_64
+
+#######################################
+# AWS Lambda Layer Resource
+#######################################
+  PuppeteerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: serverless-screenshot-lambda
+      CodeUri: functions/puppeteer
+      Handler: app.lambdaHandler
+      Runtime: nodejs18.x
+      AutoPublishAlias: prod
+      Architectures:
+        - x86_64
+      Layers:
+        - !Ref FontsLayer
+        - !Ref ChromiumLayer
+      Timeout: 30
+      MemorySize: 1024
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /try
+            Method: get
+            RestApiId: !Ref ApiGateway
+            RequestParameters: 
+              - method.request.querystring.url:
+                  Required: true
+                  Caching: false
